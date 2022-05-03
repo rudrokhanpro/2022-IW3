@@ -1,51 +1,81 @@
-import { getProducts } from './api/products';
-import Product from "./components/Product";
+import page from 'page';
+import checkConnectivity from 'network-latency';
+import { setRessources, setRessource, getRessources, getRessource } from './idbHelper';
+
+import { getProducts, getProduct } from './api/products';
+import "./views/app-home";
 
 (async (root) => {
   const skeleton = root.querySelector('.skeleton');
   const main = root.querySelector('main');
 
-  const products = await getProducts();
-  const cards = products.map((item) => {
-    const product = Product;
-
-    product.props.id = item.id;
-    product.props.title = item.title;
-    product.props.description = item.description;
-    product.props.image = item.image;
-  
-    return product.render();
+  checkConnectivity({
+    timeToCount: 3,
+    threshold: 2000,
+    interval: 3000
   });
 
-  main.append(...cards);
+  let NETWORK_STATE = true;
 
-  skeleton.setAttribute('hidden', true);
+  document.addEventListener('connection-changed', ({ detail: state }) => {
+    NETWORK_STATE = state;
 
-  /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-   */
-  // const options = {
-  //   rootMarging : '0px 0px 0px 0px'
-  // };
+    if (state) {
+      document.documentElement.style.setProperty('--app-bg-color', 'royalblue');
+    } else {
+      document.documentElement.style.setProperty('--app-bg-color', '#858994');
+    }
+  });
 
-  // const callback = entries => {
-  //   entries.forEach(entry => {
-  //     if (entry.isIntersecting) {
-  //       // Actualy load image
-  //       const image = entry.target
-  //       image.src = image.dataset.src;
-  //       image.onload = () => {
-  //         image.parentNode.querySelector('.placeholder').classList.add('fade');
-  //       }
-  //     }
-  //   })
-  // }
+  const AppHome = main.querySelector('app-home');
+  const AppProduct = main.querySelector('app-product');
 
-  // const io = new IntersectionObserver(callback, options);
+  page('*', (ctx, next) => {
+    skeleton.removeAttribute('hidden');
 
-  // cards.forEach(card => {
-  //   const image = card.querySelector('img');
-  //   io.observe(image);
-  // });
+    AppHome.active = false;
+    AppProduct.active = false;
+
+    next();
+  });
+
+  page('/', async (ctx) => {
+    const products = await getProducts();
+
+    let storedProducts = []
+    
+    if (NETWORK_STATE) {
+      await setRessources(products);
+      await getF
+    } else {
+      storedProducts = await getRessources();
+    }
+
+    AppHome.products = storedProducts;
+
+    AppHome.active = true;
+
+    skeleton.setAttribute('hidden', '');
+  });
+
+  page('/product/:id', async ({ params }) => {
+    await import('./views/app-product.js');
+    const product = await getProduct(params.id);
+
+    let storedProduct = {};
+
+    if (NETWORK_STATE) {
+      storedProduct = await setRessource(product);
+    } else {
+      storedProduct = await getRessource(params.id);
+    }
+
+    AppProduct.product = storedProduct;
+
+    AppProduct.active = true;
+    skeleton.setAttribute('hidden', '');
+  });
+
+  page();
 
 })(document.querySelector('#app'));

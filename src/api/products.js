@@ -7,3 +7,9 @@ export function getProducts() {
     .then(({ data }) => data)
     .catch(console.error);
 }
+
+export function getProduct(productId) {
+  return request.get(`/products/${productId}`)
+    .then(({ data }) => data)
+    .catch(console.error);
+}
