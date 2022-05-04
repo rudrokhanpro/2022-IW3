@@ -45,8 +45,8 @@ import "./views/app-home";
     let storedProducts = []
     
     if (NETWORK_STATE) {
-      await setRessources(products);
-      await getF
+      const products = await getProducts();
+      storedProducts = await setRessources(products);
     } else {
       storedProducts = await getRessources();
     }
