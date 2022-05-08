@@ -1,6 +1,12 @@
-import { LitElement, html, css } from "lit";
+import { html } from "lit";
 import { Base } from "../Base";
-import { putCartProduct, deleteCartProduct } from "../api/cart";
+import {
+  CART_STORE_NAME,
+  getRessources,
+  setRessource,
+  unsetRessource,
+} from "../idbHelper";
+import { putCart, deleteCartProduct, postCartProduct } from "../api/cart";
 import "../components/product-card";
 
 export class AppCart extends Base {
@@ -16,6 +22,18 @@ export class AppCart extends Base {
     };
   }
 
+  async updated(changedProperties) {
+    if (changedProperties.has("isOnline")) {
+      const wasOnline = changedProperties.get("isOnline");
+
+      if (!wasOnline) {
+        const cartProducts = await getRessources(CART_STORE_NAME);
+
+        putCart(cartProducts);
+      }
+    }
+  }
+
   get _total() {
     const total = this.products.reduce((sum, cartProduct) => {
       const { product, quantity } = cartProduct;
@@ -27,12 +45,26 @@ export class AppCart extends Base {
   }
 
   async _handleQuantityChange(e) {
-    const { cartProduct, value } = e.detail;
+    const { cartProduct, product, value } = e.detail;
+
+    if (this.isOnline) {
+      await postCartProduct({ product: cartProduct, quantity: value });
+    }
+
+    setRessource(CART_STORE_NAME, { ...cartProduct, quantity: value });
+
     this._updateCartProduct(cartProduct.id, value);
   }
 
   async _handleRemove(e) {
     const { cartProduct } = e.detail;
+
+    if (this.isOnline) {
+      await deleteCartProduct({ id: cartProduct.id });
+    }
+
+    await unsetRessource(CART_STORE_NAME, cartProduct.id);
+
     this._deleteCartProduct(cartProduct.id);
   }
 
@@ -85,6 +117,7 @@ export class AppCart extends Base {
   render() {
     return html`
       <h1>My Cart</Cart>
+      <p>${this.isOnline}</p>
 
       ${this.productsTemplate()}
       ${this.totalTemplate()}

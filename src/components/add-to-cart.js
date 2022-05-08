@@ -1,9 +1,4 @@
-import { LitElement, html, css } from "lit";
-import {
-  postCartProduct,
-  putCartProduct,
-  deleteCartProduct,
-} from "../api/cart";
+import { LitElement, html } from "lit";
 
 export class AddToCart extends LitElement {
   constructor() {
@@ -37,35 +32,35 @@ export class AddToCart extends LitElement {
     e.preventDefault();
   }
 
+  async _handleAdd(e) {
+    this.dispatchEvent(
+      new CustomEvent("added", {
+        detail: {
+          ...this._cartProduct,
+        },
+      })
+    );
+
+    this.added = true;
+  }
+
   async _handleQuantityChange(e) {
     const quantity = Number(e.target.value);
 
     this.quantity = quantity;
 
-    if (this.cartProduct) {
-      await putCartProduct({
-        ...this.cartProduct,
-        quantity,
-      });
-    }
-
     this.dispatchEvent(
       new CustomEvent("quantity-changed", {
         detail: {
           cartProduct: this.cartProduct,
+          product: this.product,
           value: quantity,
         },
       })
     );
   }
 
-  async _handleAdd(e) {
-    await postCartProduct(this._cartProduct);
-    this.added = true;
-  }
-
   async _handleRemove(e) {
-    await deleteCartProduct({ id: this.cartProduct.id });
     this.dispatchEvent(
       new CustomEvent("removed", {
         detail: {

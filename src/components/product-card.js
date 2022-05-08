@@ -27,6 +27,10 @@ export class ProductCard extends Base {
     });
   }
 
+  _handleAdd(e) {
+    this.dispatchEvent(new CustomEvent("added", e));
+  }
+
   _handleQuantityChange(e) {
     this.dispatchEvent(new CustomEvent("quantity-changed", e));
   }
@@ -41,6 +45,7 @@ export class ProductCard extends Base {
         <add-to-cart
           .product=${this.product}
           .cartProduct=${this.cartProduct}
+          @added=${this._handleAdd}
           @quantity-changed=${this._handleQuantityChange}
           @removed=${this._handleRemove}
         />

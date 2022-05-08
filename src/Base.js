@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css } from "lit";
 
 export class Base extends LitElement {
   createRenderRoot() {
@@ -8,6 +8,7 @@ export class Base extends LitElement {
   static get properties() {
     return {
       active: { type: Boolean, reflect: true },
+      isOnline: { type: Boolean, state: true },
     };
   }
 }

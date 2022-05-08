@@ -1,6 +1,8 @@
 import { html } from "lit";
+import { postCartProduct } from "../api/cart";
 import { Base } from "../Base";
 import "../components/add-to-cart";
+import { CART_STORE_NAME, setRessource } from "../idbHelper";
 
 export class AppProduct extends Base {
   constructor() {
@@ -23,6 +25,22 @@ export class AppProduct extends Base {
     image.addEventListener("load", () => {
       this.loaded = true;
     });
+  }
+
+  async _handleAdd(e) {
+    const { product, quantity } = e.detail;
+
+    if (this.isOnline) {
+      const cartProduct = await postCartProduct({ product, quantity });
+      setRessource(CART_STORE_NAME, cartProduct);
+    } else {
+      setRessource(CART_STORE_NAME, {
+        // Generate random ID
+        id: Number(Math.random().toString().substring(2, 4)),
+        product,
+        quantity,
+      });
+    }
   }
 
   render() {
@@ -48,7 +66,7 @@ export class AppProduct extends Base {
           <h1>${this.product.title}</h1>
           <p>${this.product.description}</p>
         </main>
-        <add-to-cart .product=${this.product} />
+        <add-to-cart .product=${this.product} @added=${this._handleAdd} />
       </section>
     `;
   }
