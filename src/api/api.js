@@ -1,7 +1,8 @@
 import axios from "redaxios";
 
-export function createRequest() {
+export function createRequest(config = {}) {
   return axios.create({
-    baseURL: "http://localhost:3000"
+    baseURL: "http://localhost:3000",
+    ...config,
   });
 }
